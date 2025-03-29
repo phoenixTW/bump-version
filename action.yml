@@ -2,6 +2,9 @@ name: '@phoenixTW/bump-version'
 description: |
   Bumps and outputs SemVer either using explicitly passed input values
   or based on the latest existing version and last merged PR branch name
+branding:
+  icon: anchor
+  color: blue
 
 inputs:
   repository:
