@@ -1,0 +1,49 @@
+name: '@phoenixTW/bump-version'
+description: |
+  Bumps and outputs SemVer either using explicitly passed input values
+  or based on the latest existing version and last merged PR branch name
+
+inputs:
+  repository:
+    description: |
+      Repository name.
+      Required when bump-type is not set and has to be calculated from the last merged branch name.
+    required: false
+  access_token:
+    description: |
+      GitHub Access Token.
+      Required when bump-type is not set and has to be calculated from the last merged branch name.
+    required: false
+  initial_version:
+    description: "Initial version used if there's no version already"
+    required: false
+    default: "0.0.0"
+  current-version:
+    description: "A known version to bump, if not set - the latest tag is used as a version"
+    required: false
+  bump-type:
+    description: |
+      What part of the SemVer should be bumped for the current version - major, minor, patch, release, prerel, build.
+      If not set - the type is being determined based on the last merged branch prefix:
+      - patch|issue|hotfix|dependabot|whitesource -> patch
+      - minor|feature -> minor
+      - major|release -> major
+    required: false
+
+outputs:
+  new_version:
+    description: "New generated version"
+    value: ${{ steps.bump-version.outputs.version }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: bump-version
+      shell: bash
+      run: >
+        INPUT_REPOSITORY="${{ inputs.repository }}"
+        INPUT_ACCESS_TOKEN="${{ inputs.access_token }}"
+        INPUT_INITIAL_VERSION="${{ inputs.initial_version }}"
+        INPUT_CURRENT_VERSION="${{ inputs.current-version }}"
+        INPUT_BUMP_TYPE="${{ inputs.bump-type }}"
+        ${{ github.action_path }}/script.sh
