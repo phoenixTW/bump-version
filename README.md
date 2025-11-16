@@ -75,6 +75,37 @@ jobs:
           repository: ${{ github.repository }}
 ```
 
+### Using default-bump-type for direct pushes
+
+When pushing directly to the default branch without a PR, or when the branch name doesn't match any known patterns, you can provide a `default-bump-type` to use as a fallback. This is useful for automated workflows or when branch naming conventions aren't followed.
+
+```yaml
+---
+name: "Generate New Version"
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  release:
+    name: Release
+    runs-on: [ self-hosted, default ]
+    timeout-minutes: 15
+    permissions:
+        contents: read
+        pull-requests: read
+    steps:
+      - name: Generate Version
+        id: version
+        uses: @phoenixTW/bump-version@master
+        with:
+          access_token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          default-bump-type: "patch"
+```
+
 ## How does it work
 
 Under the hood, it does multiple things:
@@ -90,6 +121,10 @@ The action, first checks if the bump-type is explicitly set, if not, then,
 1. The action checks the latest commit and finds a PR from GitHub with that specific commit
 2. It retrieves the branch name from the matching PR
 3. Based on the branch name, it determines if the patch/minor/major version needs to be bumped
+
+If no PR is found for the latest commit (e.g., direct push to default branch) or if the branch name doesn't match any known patterns, the action will:
+- Use the `default-bump-type` if provided (must be one of: patch, minor, major)
+- Exit with an error if `default-bump-type` is not provided
 
 ### Version bumping
 

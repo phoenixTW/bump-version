@@ -31,6 +31,12 @@ inputs:
       - minor|feature -> minor
       - major|release -> major
     required: false
+  default-bump-type:
+    description: |
+      Default bump type to use when bump-type cannot be determined from PR branch name.
+      Used when no PR is found for the latest commit (direct push to default branch) or when the branch name doesn't match any known patterns.
+      Accepts: patch, minor, major
+    required: false
 
 outputs:
   new_version:
@@ -48,4 +54,5 @@ runs:
         INPUT_INITIAL_VERSION="${{ inputs.initial_version }}"
         INPUT_CURRENT_VERSION="${{ inputs.current-version }}"
         INPUT_BUMP_TYPE="${{ inputs.bump-type }}"
+        INPUT_DEFAULT_BUMP_TYPE="${{ inputs.default-bump-type }}"
         ${{ github.action_path }}/script.sh

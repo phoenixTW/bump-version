@@ -29,6 +29,24 @@ function get_bump_type() {
     # echo "Found the following Branch for commit ${LAST_COMMIT}:"
     # echo ${BRANCH_NAME}
 
+    # Check if no PR was found (empty BRANCH_NAME)
+    if [[ -z "${BRANCH_NAME}" ]]; then
+        if [[ -n "${INPUT_DEFAULT_BUMP_TYPE}" ]]; then
+            # Validate default-bump-type
+            if [[ "${INPUT_DEFAULT_BUMP_TYPE}" =~ ^(patch|minor|major)$ ]]; then
+                echo "No PR found for commit ${LAST_COMMIT}, using default-bump-type: ${INPUT_DEFAULT_BUMP_TYPE}" >&2
+                echo "${INPUT_DEFAULT_BUMP_TYPE}"
+                return 0
+            else
+                echo "Invalid default-bump-type: ${INPUT_DEFAULT_BUMP_TYPE}. Must be one of: patch, minor, major" 1>&2
+                exit 1
+            fi
+        else
+            echo "No PR found for commit ${LAST_COMMIT} and default-bump-type is not set" 1>&2
+            exit 1
+        fi
+    fi
+
     # Find the largest version bump based on the merged PR's
     BUMP=""
     # Get the version bump based on the branch name
@@ -39,8 +57,21 @@ function get_bump_type() {
     elif echo "${BRANCH_NAME}" | grep -q -i -E '(^|[-/])(major|release)[-/]?'; then
         BUMP='major'
     else
-        echo "Invalid branch name retrieved from PR: ${BRANCH_NAME}" 1>&2
-        exit 1
+        # Branch name doesn't match any pattern
+        if [[ -n "${INPUT_DEFAULT_BUMP_TYPE}" ]]; then
+            # Validate default-bump-type
+            if [[ "${INPUT_DEFAULT_BUMP_TYPE}" =~ ^(patch|minor|major)$ ]]; then
+                echo "Branch name '${BRANCH_NAME}' doesn't match any known pattern, using default-bump-type: ${INPUT_DEFAULT_BUMP_TYPE}" >&2
+                echo "${INPUT_DEFAULT_BUMP_TYPE}"
+                return 0
+            else
+                echo "Invalid default-bump-type: ${INPUT_DEFAULT_BUMP_TYPE}. Must be one of: patch, minor, major" 1>&2
+                exit 1
+            fi
+        else
+            echo "Invalid branch name retrieved from PR: ${BRANCH_NAME}" 1>&2
+            exit 1
+        fi
     fi
     echo $BUMP
 }
